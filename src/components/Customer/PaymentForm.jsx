@@ -28,7 +28,7 @@ const PaymentForm = ({ totalAmount  }) => {
         const response = await fetch("http://localhost:4000/payments/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: totalAmount, currency }),
+          body: JSON.stringify({ cartId: cartId, currency }),
         });
         console.log(response);
         console.log(cartId);
