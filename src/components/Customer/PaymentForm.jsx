@@ -23,12 +23,14 @@ const PaymentForm = ({ totalAmount  }) => {
   
   // Fetch clientSecret when the component mounts
   useEffect(() => {
+    if (!totalAmount || totalAmount <= 0) return;
+    if (!cartId) return;
     const fetchClientSecret = async () => {
       try {
         const response = await fetch("http://localhost:4000/payments/create-payment-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: totalAmount, currency }),
+          body: JSON.stringify({ cartId: cartId, currency , totalAmount: totalAmount}),
         });
         console.log(response);
         console.log(cartId);
