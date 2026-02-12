@@ -29,7 +29,7 @@ function Login() {
     try {
       const response = await axios.post('http://localhost:4000/user/login', data);
       console.log('Login successful', response.data);
-      localStorage.setItem('token', response.data.token);  // Store token in local storage
+      localStorage.setItem('token', response.data);  // Store token in local storage
       toast.success('Login successful!');
       setTimeout(() => {
         navigate('/dashboard');
