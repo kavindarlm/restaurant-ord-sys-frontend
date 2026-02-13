@@ -15,8 +15,8 @@ const PaymentForm = ({ totalAmount }) => {
   const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false);
   const currency = "usd";
   const navigate = useNavigate();
-  const { cartId } = useParams(); // This is now an encrypted cart ID
-  
+  const cartId = sessionStorage.getItem("encrypted_cart_id");
+
   // Fetch clientSecret when the component mounts
   useEffect(() => {
     if (!totalAmount || totalAmount <= 0) return;
