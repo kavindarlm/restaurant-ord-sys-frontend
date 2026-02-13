@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-import { useLocation, useParams } from "react-router-dom"; // Update this import
-import { toast, ToastContainer } from "react-toastify"; // Update this import
-import 'react-toastify/dist/ReactToastify.css'; // Add this import
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
-
-
-
-const PaymentForm = ({ totalAmount  }) => {
+const PaymentForm = ({ totalAmount }) => {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -19,28 +15,25 @@ const PaymentForm = ({ totalAmount  }) => {
   const [isPaymentSuccessful, setIsPaymentSuccessful] = useState(false);
   const currency = "usd";
   const navigate = useNavigate();
-  const { cartId } = useParams(); // Use useParams to get cartId from URL
+  const { cartId } = useParams(); // This is now an encrypted cart ID
   
   // Fetch clientSecret when the component mounts
   useEffect(() => {
     const fetchClientSecret = async () => {
       try {
-        const response = await fetch("http://localhost:4000/payments/create-payment-intent", {
+        const response = await fetch('http://localhost:4000/payments/create-payment-intent', {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ amount: totalAmount, currency }),
         });
         console.log(response);
-        console.log(cartId);
-        // if (!response.ok) {
-        //   throw new Error("Failed to fetch client secret");
-        // }
+        console.log('Encrypted Cart ID:', cartId);
 
         const data = await response.json();
         setClientSecret(data.clientSecret);
       } catch (error) {
         console.error("Error fetching client secret:", error);
-        // toast.error("Error initializing payment. Please try again."); // Add this line
+        toast.error("Error initializing payment. Please try again.");
       }
     };
 
@@ -79,19 +72,19 @@ const PaymentForm = ({ totalAmount  }) => {
       }
 
       // alert(`Payment of $${totalAmount.toFixed(2)} was successful!`);
-      toast.success(`Payment of $${totalAmount.toFixed(2)} was successful!`); // Add this line
+      toast.success(`Payment of $${totalAmount.toFixed(2)} was successful!`);
   
       // Send order request after payment success
       const orderData = {
-        cart_id: cartId,  // cart_id from URL
-        total_price: totalAmount,  // total amount from payment
+        cart_id: cartId,  // encrypted cart_id from URL
+        total_price: totalAmount,
         payment: {
           customer_name: cardholderName,
           customer_email: email,
         },
       };
 
-      const orderResponse = await fetch("http://localhost:4000/order", {
+      const orderResponse = await fetch('http://localhost:4000/order', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
@@ -104,17 +97,16 @@ const PaymentForm = ({ totalAmount  }) => {
       const orderDataResponse = await orderResponse.json();
       console.log("Order created successfully:", orderDataResponse);
 
-      // alert("Order has been created successfully!");
-      toast.success("Order has been created successfully!"); // Add this line
+      toast.success("Order has been created successfully!");
 
       // Clear the cart in local storage
       localStorage.removeItem("cart");
 
-      // Get table_id from local storage
-      const tableId = localStorage.getItem("table_id");
+      // Get encrypted table_id from sessionStorage
+      const encryptedTableId = sessionStorage.getItem("encrypted_table_id");
 
-      // Navigate to the hotel menu page with table_id
-      setTimeout(() => navigate(`/hotelMenuPageCustomer/${tableId}`), 2000);
+      // Navigate to the hotel menu page with encrypted table_id
+      setTimeout(() => navigate(`/hotelMenuPageCustomer/${encryptedTableId}`), 2000);
 
     } catch (error) {
       console.error("Payment Error:", error);

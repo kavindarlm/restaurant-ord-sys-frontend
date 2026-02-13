@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+import { useNavigate } from 'react-router-dom';
 import riceImg from '../../assets/delicious-chicken-fried-rice-with-vegetables-and-herbs-cut-out-stock-png.webp';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ShoppingCart = () => {
   const [cartItems, setCartItems] = useState([]);
-  const [cartId, setCartId] = useState(null); // Store the cart ID
+  const [encryptedCartId, setEncryptedCartId] = useState(null);
   const [isProceeding, setIsProceeding] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Load the cart from localStorage and group items by dish_id and size
@@ -67,22 +69,34 @@ const ShoppingCart = () => {
     try {
       setIsProceeding(true);
 
-      // Get table_id from localStorage
-      const tableId = localStorage.getItem('table_id');
+      // Get encrypted table_id from sessionStorage
+      const encryptedTableId = sessionStorage.getItem('encrypted_table_id');
+      
+      if (!encryptedTableId) {
+        toast.error('Session expired. Please scan the QR code again.');
+        return;
+      }
 
-      // Step 1: Create the cart in the backend
-      const cartResponse = await axios.post('http://localhost:4000/carts', {
-        cart_status: 'active',
-        is_active: true,
-        table_id: tableId, // Include table_id in the request
-      });
-      const newCartId = cartResponse.data.cart_id;
-      setCartId(newCartId);
+      // Step 1: Create the cart using the secure endpoint with encrypted table ID
+      const cartResponse = await axios.post(
+        `http://localhost:4000/carts/table/${encryptedTableId}`,
+        {
+          cart_status: 'active',
+          is_active: true,
+        }
+      );
+      
+      // Backend returns encrypted cart_id
+      const encryptedCartIdFromServer = cartResponse.data.encryptedCartId;
+      setEncryptedCartId(encryptedCartIdFromServer);
+      
+      // Store encrypted cart_id in sessionStorage
+      sessionStorage.setItem('encrypted_cart_id', encryptedCartIdFromServer);
 
       // Step 2: Add items to the cart in the backend
       for (const item of cartItems) {
         await axios.post('http://localhost:4000/cart-items', {
-          cart_id: newCartId,
+          cart_id: encryptedCartIdFromServer, // Use encrypted cart ID
           quantity: item.quantity,
           dish_id: item.dish_id,
           is_deleted: false,
@@ -92,9 +106,10 @@ const ShoppingCart = () => {
       console.log('Cart and cart items successfully created!');
 
       // After successful cart creation, navigate to the payment page
-      navigate(`/payment/${newCartId}`); // Redirect to the payment page with cartId
+      navigate(`/payment/${encryptedCartIdFromServer}`);
     } catch (error) {
       console.error('Error during proceed to payment:', error);
+      toast.error(error.response?.data?.message || 'Failed to proceed to payment. Please try again.');
     } finally {
       setIsProceeding(false);
     }
@@ -102,6 +117,7 @@ const ShoppingCart = () => {
 
   return (
     <div className="p-4 sm:p-8 bg-white rounded-md shadow-md max-w-full sm:max-w-3xl mx-auto relative">
+      <ToastContainer />
       <h1 className="text-xl sm:text-2xl font-bold mb-4">Shopping Cart</h1>
       <p className="text-gray-500 mb-6">Review your selected items and proceed to payment.</p>
       <div className="space-y-4">
