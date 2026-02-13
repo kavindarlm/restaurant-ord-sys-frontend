@@ -29,14 +29,18 @@ function Login() {
     try {
       const response = await axios.post('http://localhost:4000/user/login', data);
       console.log('Login successful', response.data);
-      localStorage.setItem('token', response.data.token);  // Store token in local storage
+      localStorage.setItem('token', response.data);  // Store token in local storage
       toast.success('Login successful!');
       setTimeout(() => {
         navigate('/dashboard');
       }, 1000); 
     } catch (error) {
       console.error('Login error', error);
-      toast.error('Login failed. Please try again.');  // Show error toast
+      // Display specific error message from backend (including account lockout message)
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      toast.error(errorMessage, {
+        autoClose: 8000  // Extended time for lockout messages
+      });
     }
   };
 
