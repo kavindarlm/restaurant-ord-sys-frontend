@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { logger } from "../../utils/logger";
 
 // MenuItem Component
-const MenuItem = ({ dish_id, dish_name, dish_image_url, dishPrices, dish_description }) => {
+const MenuItem = ({
+  dish_id,
+  dish_name,
+  dish_image_url,
+  dishPrices,
+  dish_description,
+}) => {
   const navigate = useNavigate(); // Initialize useNavigate
   const selectedPrice = dishPrices[0]; // Select the first price in the array
 
@@ -22,7 +29,9 @@ const MenuItem = ({ dish_id, dish_name, dish_image_url, dishPrices, dish_descrip
         className="w-full h-40 object-cover rounded-t-lg"
       />
       <h3 className="mt-2 font-semibold text-orange-700">{dish_name}</h3>
-      <h5 className="mt-2 font-normal text-slate-700 text-xs text-justify">{dish_description}</h5>
+      <h5 className="mt-2 font-normal text-slate-700 text-xs text-justify">
+        {dish_description}
+      </h5>
       <p className="mt-2 text-sm text-orange-700">
         {selectedPrice.size} Price: Rs. {Number(selectedPrice.price).toFixed(2)}
       </p>
@@ -41,29 +50,29 @@ const ItemMenuCustomer = () => {
     const queryParams = new URLSearchParams(window.location.search);
     const categoryIdFromUrl = queryParams.get("category_id");
     setCategoryId(categoryIdFromUrl);
-    console.log("categoryIdFromUrl", categoryIdFromUrl);
+    logger.log("categoryIdFromUrl", categoryIdFromUrl);
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:4000/dish/category/" + categoryIdFromUrl
+          "http://localhost:4000/dish/category/" + categoryIdFromUrl,
         );
         setMenuItems(response.data);
-        console.log("response", response);
+        logger.log("response", response);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        logger.error("Error fetching data:", error);
       }
     };
 
     const fetchCategoryName = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:4000/category/" + categoryIdFromUrl
+          "http://localhost:4000/category/" + categoryIdFromUrl,
         );
-        console.log("response", response);
+        logger.log("response", response);
         setCategoryName(response.data.name);
         setCategoryDescription(response.data.description);
       } catch (error) {
-        console.error("Error fetching category name:", error);
+        logger.error("Error fetching category name:", error);
       }
     };
 

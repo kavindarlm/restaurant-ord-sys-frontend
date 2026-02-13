@@ -3,6 +3,7 @@ import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { logger } from "../../utils/logger";
 
 const PaymentForm = ({ totalAmount }) => {
   const stripe = useStripe();
@@ -28,13 +29,13 @@ const PaymentForm = ({ totalAmount }) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cartId: cartId, currency , totalAmount: totalAmount}),
         });
-        console.log(response);
-        console.log('Encrypted Cart ID:', cartId);
+        logger.log(response);
+        logger.log(cartId);
 
         const data = await response.json();
         setClientSecret(data.clientSecret);
       } catch (error) {
-        console.error("Error fetching client secret:", error);
+        logger.error("Error fetching client secret:", error);
         toast.error("Error initializing payment. Please try again.");
       }
     };
@@ -55,19 +56,21 @@ const PaymentForm = ({ totalAmount }) => {
     try {
       const cardElement = elements.getElement(CardElement);
 
-      const { paymentMethod, error: paymentMethodError } = await stripe.createPaymentMethod({
-        type: "card",
-        card: cardElement,
-        billing_details: { name: cardholderName, email: email },
-      });
+      const { paymentMethod, error: paymentMethodError } =
+        await stripe.createPaymentMethod({
+          type: "card",
+          card: cardElement,
+          billing_details: { name: cardholderName, email: email },
+        });
 
       if (paymentMethodError) {
         throw new Error(paymentMethodError.message);
       }
 
-      const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethod.id,
-      });
+      const { paymentIntent, error: confirmError } =
+        await stripe.confirmCardPayment(clientSecret, {
+          payment_method: paymentMethod.id,
+        });
 
       if (confirmError) {
         throw new Error(confirmError.message);
@@ -97,7 +100,7 @@ const PaymentForm = ({ totalAmount }) => {
       }
 
       const orderDataResponse = await orderResponse.json();
-      console.log("Order created successfully:", orderDataResponse);
+      logger.log("Order created successfully:", orderDataResponse);
 
       toast.success("Order has been created successfully!");
 
@@ -111,9 +114,8 @@ const PaymentForm = ({ totalAmount }) => {
       setTimeout(() => navigate(`/hotelMenuPageCustomer/${encryptedTableId}`), 2000);
 
     } catch (error) {
-      console.error("Payment Error:", error);
+      logger.error("Payment Error:", error);
       toast.error(error.message || "Payment failed. Please try again."); // Add this line
-      
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +123,11 @@ const PaymentForm = ({ totalAmount }) => {
 
   return (
     <div className="p-8 bg-white rounded-md shadow-md max-w-lg mx-auto relative z-10">
-      <ToastContainer/>
+      <ToastContainer />
       <h2 className="text-2xl font-semibold mb-4">Let's Make Payment</h2>
       <p className="text-gray-600 mb-6">
-        To start your subscription, input your card details to make payment of <strong>Rs {totalAmount.toFixed(2)}</strong>.
+        To start your subscription, input your card details to make payment of{" "}
+        <strong>Rs {totalAmount.toFixed(2)}</strong>.
       </p>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

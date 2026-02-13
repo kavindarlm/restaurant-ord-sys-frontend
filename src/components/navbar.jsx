@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import logo from "../assets/image 21.png";
 import { IoLogOut } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useAdminAuth } from "../contexts/AdminAuthContext";
+import { toast } from "react-toastify";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { admin, logout } = useAdminAuth();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -14,11 +16,12 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("http://localhost:4000/user/logout");
-      localStorage.removeItem("token");
+      await logout();
+      toast.success("Logged out successfully");
       navigate("/login");
     } catch (error) {
       console.error("Logout failed", error);
+      toast.error("Logout failed");
     }
   };
 
@@ -40,13 +43,22 @@ function Navbar() {
         type="button"
         className="inline-flex items-center p-2 w-10 h-10 justify-center text-white rounded-lg md:hidden"
       ></button>
-      <button
-        onClick={handleLogout}
-        className="flex items-center text-white pr-4"
-      >
-        <IoLogOut className="text-lg mr-1" />
-        Logout
-      </button>
+
+      {/* Admin info and Logout */}
+      <div className="flex items-center gap-3 pr-4">
+        {admin && (
+          <span className="text-white text-sm hidden md:inline">
+            👤 {admin.user_name || admin.user_email}
+          </span>
+        )}
+        <button
+          onClick={handleLogout}
+          className="flex items-center text-white hover:text-orange-300 transition-colors"
+        >
+          <IoLogOut className="text-lg mr-1" />
+          Logout
+        </button>
+      </div>
     </nav>
   );
 }

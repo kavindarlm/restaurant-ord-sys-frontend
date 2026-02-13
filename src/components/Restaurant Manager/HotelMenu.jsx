@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { logger } from "../../utils/logger";
 
 const MenuItem = ({ category_name, category_image_url, category_id }) => (
   <Link to={`/itemMenuPage?category_id=${category_id}`}>
     <div className="relative rounded-lg overflow-hidden shadow-md transform transition-transform duration-300 hover:scale-105">
-      <img src={category_image_url} alt={category_name} className="w-full h-40 object-cover" />
+      <img
+        src={category_image_url}
+        alt={category_name}
+        className="w-full h-40 object-cover"
+      />
       <div className="absolute bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 text-white p-2">
         <h3 className="text-lg font-semibold">{category_name}</h3>
       </div>
@@ -33,10 +38,10 @@ function HotelMenu() {
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:4000/category");
-        console.log("response", response);
+        logger.log("response", response);
         setMenuItems(response.data);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        logger.error("Error fetching data:", error);
       }
     };
 
@@ -56,9 +61,10 @@ function HotelMenu() {
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ml-14 mr-14">
-        {menuItems && menuItems.map((item) => (
-          <MenuItem key={item.category_id} {...item} />
-        ))}
+        {menuItems &&
+          menuItems.map((item) => (
+            <MenuItem key={item.category_id} {...item} />
+          ))}
         <AddNewItem />
       </div>
     </div>
