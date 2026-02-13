@@ -26,19 +26,17 @@ function Login() {
     };
 
     try {
-      await axios.post(
-        "http://localhost:4000/user/login",
-        data,
-        { withCredentials: true }, // HttpOnly cookie support
-      );
-
-      toast.success("Login successful!");
+      await axios.post('http://localhost:4000/user/login', data, { withCredentials: true });
+      toast.success('Login successful!');
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);
     } catch (error) {
-      console.error("Login error", error);
-      toast.error("Login failed. Please try again.");
+      // Display specific error message from backend (including account lockout message)
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      toast.error(errorMessage, {
+        autoClose: 8000  // Extended time for lockout messages
+      });
     }
   };
 

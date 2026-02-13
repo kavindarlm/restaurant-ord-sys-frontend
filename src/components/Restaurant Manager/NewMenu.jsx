@@ -4,7 +4,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Navbar from "../navbar";
-import { handleUpload } from "../../FileUpload";
 import Footer2 from "../footer2";
 
 export default function NewMenu() {
@@ -14,26 +13,65 @@ export default function NewMenu() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      console.log('File selected:', file.name, file.type, file.size);
+      setImage(file);
+    } else {
+      console.log('No file selected');
+      setImage(null);
+    }
+  };
+
   const handleRegister = async (event) => {
     event.preventDefault();
     try {
-      let category_image_url = "";
+      // Create FormData for multipart/form-data request
+      const formData = new FormData();
+      
+      // Debug logging
+      console.log('Image file:', image);
+      console.log('Image type:', image?.type);
+      console.log('Image name:', image?.name);
+      console.log('Image size:', image?.size);
+      
+      // Add file if present
       if (image) {
-        category_image_url = await handleUpload(image);
+        formData.append('image', image);
       }
-
-      await axios.post("http://localhost:4000/category", {
-        // Replace with actual API URL
-        category_name,
-        category_description,
-        category_image_url: category_image_url,
+      
+      // Add category data
+      formData.append('category_name', category_name);
+      formData.append('category_description', category_description);
+      
+      // Debug FormData contents
+      console.log('FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ':', pair[1]);
+      }
+      
+      // Log the actual request details
+      console.log('Sending request to: http://localhost:4000/category');
+      console.log('Request method: POST');
+      console.log('Content-Type will be set by browser with boundary');
+      
+      // Send to backend - backend handles Supabase upload
+      const response = await axios.post("http://localhost:4000/category", formData, {
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log('Upload progress:', percentCompleted + '%');
+        }
       });
+      console.log('Success response:', response.data);
 
       toast.success("New Menu Category is added successfully!");
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => navigate("/hotelMenuPage"), 2000);
     } catch (err) {
+      console.error('Category creation error:', err.response?.data || err.message);
       const errorMessage =
         err.response?.data?.message ||
+        err.response?.data?.error ||
         "Menu Category adding is failed. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
@@ -103,8 +141,8 @@ export default function NewMenu() {
                         id="file-upload"
                         name="file-upload"
                         type="file"
-                        onChange={(e) => setImage(e.target.files[0])}
-                        required
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileChange}
                         aria-label="Image"
                         className="sr-only"
                       />
@@ -112,7 +150,7 @@ export default function NewMenu() {
                     <p className="pl-1">or drag and drop</p>
                   </div>
                   <p className="text-xs text-gray-500">
-                    PNG, JPG, GIF up to 10MB
+                    PNG, JPG, WebP up to 5MB
                   </p>
                 </div>
               </div>

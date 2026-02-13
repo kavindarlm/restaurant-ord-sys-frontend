@@ -5,17 +5,26 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Navbar from "../navbar";
 import Footer2 from "../footer2";
-import { handleUpload } from "../../FileUpload";
 import { logger } from "../../utils/logger";
 
 export default function NewItem() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState(null);
   const [sizes, setSizes] = useState([{ size: "", price: "" }]);
   const [categoryId, setCategoryId] = useState(null);
   const navigate = useNavigate();
-  const [setError] = useState("");
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      console.log('File selected:', file.name, file.type, file.size);
+      setImage(file);
+    } else {
+      console.log('No file selected');
+      setImage(null);
+    }
+  };
 
   // Handle adding a new size input field
   const handleAddSize = () => {
@@ -39,24 +48,44 @@ export default function NewItem() {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      let dish_image_url = "";
+      // Create FormData for multipart/form-data request
+      const formData = new FormData();
+      
+      // Debug logging
+      console.log('Image file:', image);
+      console.log('Image type:', image?.type);
+      console.log('Image name:', image?.name);
+      console.log('Image size:', image?.size);
+      
+      // Add file if present
       if (image) {
-        dish_image_url = await handleUpload(image);
+        formData.append('image', image);
       }
-      await axios.post("http://localhost:4000/dish", {
-        dish_name: name,
-        dish_description: description,
-        dish_image_url: dish_image_url,
-        prices: sizes,
-        category_id: categoryId,
-      });
+      
+      // Add dish data
+      formData.append('dish_name', name);
+      formData.append('dish_description', description);
+      formData.append('category_id', categoryId.toString());
+      formData.append('prices', JSON.stringify(sizes));
+      
+      // Debug FormData contents
+      console.log('FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ':', pair[1]);
+      }
+      
+      // Send to backend - backend handles Supabase upload
+      const response = await axios.post("http://localhost:4000/dish", formData);
+      console.log('Success response:', response.data);
+      
       toast.success("New Product is added successfully! ");
-      setTimeout(() => navigate("/"), 2000);
+      setTimeout(() => navigate("/itemMenuPage?category_id=" + categoryId), 2000);
     } catch (err) {
+      console.error('Dish creation error:', err.response?.data || err.message);
       const errorMessage =
         err.response?.data?.message ||
+        err.response?.data?.error ||
         "Product adding failed. Please try again.";
-      setError(errorMessage);
       toast.error(errorMessage);
     }
   };
@@ -131,8 +160,8 @@ export default function NewItem() {
                         id="file-upload"
                         name="file-upload"
                         type="file"
-                        onChange={(e) => setImage(e.target.files[0])}
-                        required
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleFileChange}
                         aria-label="Image"
                         className="sr-only"
                       />
@@ -140,7 +169,7 @@ export default function NewItem() {
                     <p className="pl-1">or drag and drop</p>
                   </div>
                   <p className="text-xs text-gray-500">
-                    PNG, JPG, GIF up to 10MB
+                    PNG, JPG, WebP up to 5MB
                   </p>
                 </div>
               </div>
