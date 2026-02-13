@@ -3,36 +3,54 @@ import axios from "axios";
 import { AiOutlineCheckCircle, AiOutlineShoppingCart } from "react-icons/ai";
 import { FiDollarSign } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { logger } from "../../utils/logger";
 
 const Dashboard = () => {
   const [data, setData] = useState({
     dailyCompletedOrder: 0,
     pendingOrder: 0,
     dailyIncome: 0,
-    weekIncomeData: [],  // Initially set to an empty array
+    weekIncomeData: [], // Initially set to an empty array
   });
   const [currentDateTime, setCurrentDateTime] = useState("");
   const navigate = useNavigate();
-  
+
   const handleClick = () => {
-    navigate('/pendingOrderPage');
+    navigate("/pendingOrderPage");
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch the necessary data from your backend
-        const completedOrderResponse = await axios.get("http://localhost:4000/order/dailycompletedorderscount/count");
-        const pendingOrderResponse = await axios.get("http://localhost:4000/order/pendingcount/count");
-        const dailyIncomeResponse = await axios.get("http://localhost:4000/order/dailyincome/income");
-        const weeklyIncomeResponse = await axios.get("http://localhost:4000/order/weeklyincome/byDays");  // Fetch the weekly income data
+        const completedOrderResponse = await axios.get(
+          "http://localhost:4000/order/dailycompletedorderscount/count",
+        );
+        const pendingOrderResponse = await axios.get(
+          "http://localhost:4000/order/pendingcount/count",
+        );
+        const dailyIncomeResponse = await axios.get(
+          "http://localhost:4000/order/dailyincome/income",
+        );
+        const weeklyIncomeResponse = await axios.get(
+          "http://localhost:4000/order/weeklyincome/byDays",
+        ); // Fetch the weekly income data
 
-        console.log("Fetched data:", {
+        logger.log("Fetched data:", {
           completedOrder: completedOrderResponse.data,
           pendingOrder: pendingOrderResponse.data,
           dailyIncome: dailyIncomeResponse.data,
-          weeklyIncome: weeklyIncomeResponse.data,  // Log the weekly income data
+          weeklyIncome: weeklyIncomeResponse.data, // Log the weekly income data
         });
 
         // Update the state with the fetched values
@@ -40,15 +58,15 @@ const Dashboard = () => {
           dailyCompletedOrder: completedOrderResponse.data,
           pendingOrder: pendingOrderResponse.data,
           dailyIncome: dailyIncomeResponse.data,
-          weekIncomeData: weeklyIncomeResponse.data,  // Update the weekIncomeData state
+          weekIncomeData: weeklyIncomeResponse.data, // Update the weekIncomeData state
         });
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        logger.error("Error fetching dashboard data:", error);
       }
 
       // Get current date and time
       const now = new Date();
-      const formattedDate = now.toLocaleDateString("en-GB"); 
+      const formattedDate = now.toLocaleDateString("en-GB");
       const formattedTime = now.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
@@ -78,8 +96,8 @@ const Dashboard = () => {
               <BarChart data={data.weekIncomeData}>
                 <defs>
                   <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#E0440E" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#FFBB28" stopOpacity={0.8}/>
+                    <stop offset="5%" stopColor="#E0440E" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#FFBB28" stopOpacity={0.8} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -114,7 +132,9 @@ const Dashboard = () => {
                 onClick={handleClick}
               >
                 <div className="flex items-center justify-between w-full">
-                  <h3 className="text-lg font-bold text-orange-900 group-hover:text-white">Pending Order</h3>
+                  <h3 className="text-lg font-bold text-orange-900 group-hover:text-white">
+                    Pending Order
+                  </h3>
                   <AiOutlineShoppingCart className="h-10 w-10 text-orange-900 group-hover:text-white" />
                 </div>
                 <p className="text-4xl font-bold text-brown-900 mt-4 group-hover:text-white">

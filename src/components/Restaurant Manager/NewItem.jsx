@@ -6,6 +6,7 @@ import axios from "axios";
 import Navbar from "../navbar";
 import Footer2 from "../footer2";
 import { handleUpload } from "../../FileUpload";
+import { logger } from "../../utils/logger";
 
 export default function NewItem() {
   const [name, setName] = useState("");
@@ -68,7 +69,7 @@ export default function NewItem() {
     const queryParams = new URLSearchParams(window.location.search);
     const categoryIdFromUrl = queryParams.get("category_id");
     setCategoryId(categoryIdFromUrl);
-    console.log("categoryIdFromUrl", categoryIdFromUrl);
+    logger.log("categoryIdFromUrl", categoryIdFromUrl);
   }, []);
 
   return (
