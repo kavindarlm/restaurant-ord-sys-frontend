@@ -5,6 +5,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import TableList from './tableList';
+import { containsScriptOrEvent } from '../../utils/inputValidation';
 import Footer2 from '../footer2';
 
 export default function QRCodeGenerate() {
@@ -19,6 +20,13 @@ export default function QRCodeGenerate() {
         e.preventDefault();
         if (!tableName.trim()) {
             toast.error('Table name cannot be empty.');
+            return;
+        }
+
+        if (containsScriptOrEvent(tableName)) {
+            const msg = 'Table name contains disallowed scripts or event handlers. Remove them before saving.';
+            setError(msg);
+            toast.error(msg);
             return;
         }
 

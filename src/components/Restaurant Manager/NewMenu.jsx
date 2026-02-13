@@ -6,6 +6,7 @@ import axios from "axios";
 import Navbar from "../navbar";
 import { handleUpload } from "../../FileUpload";
 import Footer2 from "../footer2";
+import { containsScriptOrEvent } from "../../utils/inputValidation";
 
 export default function NewMenu() {
   const [category_name, setName] = useState("");
@@ -16,6 +17,15 @@ export default function NewMenu() {
 
   const handleRegister = async (event) => {
     event.preventDefault();
+
+    // Frontend validation against script-like input
+    if (containsScriptOrEvent(category_name) || containsScriptOrEvent(category_description)) {
+      const msg =
+        "Input contains disallowed scripts or event handlers. Remove them before saving.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
     try {
       let category_image_url = "";
       if (image) {

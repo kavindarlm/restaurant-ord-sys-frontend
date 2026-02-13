@@ -6,6 +6,7 @@ import axios from "axios";
 import Navbar from "../navbar";
 import Footer2 from "../footer2";
 import { handleUpload } from "../../FileUpload";
+import { containsScriptOrEvent } from "../../utils/inputValidation";
 
 export default function NewItem() {
   const [name, setName] = useState("");
@@ -14,7 +15,7 @@ export default function NewItem() {
   const [sizes, setSizes] = useState([{ size: "", price: "" }]);
   const [categoryId, setCategoryId] = useState(null);
   const navigate = useNavigate();
-  const [setError] = useState("");
+  const [error, setError] = useState("");
 
   // Handle adding a new size input field
   const handleAddSize = () => {
@@ -37,6 +38,15 @@ export default function NewItem() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    // Frontend validation against script-like input
+    const valuesToCheck = [name, description, ...sizes.flatMap((s) => [s.size, s.price])];
+    if (valuesToCheck.some((v) => containsScriptOrEvent(v))) {
+      const msg =
+        "Input contains disallowed scripts or event handlers. Remove them before saving.";
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
     try {
       let dish_image_url = "";
       if (image) {

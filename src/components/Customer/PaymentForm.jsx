@@ -4,6 +4,7 @@ import { useLocation, useParams } from "react-router-dom"; // Update this import
 import { toast, ToastContainer } from "react-toastify"; // Update this import
 import 'react-toastify/dist/ReactToastify.css'; // Add this import
 import { useNavigate } from "react-router-dom";
+import { containsScriptOrEvent } from "../../utils/inputValidation";
 
 
 
@@ -51,6 +52,14 @@ const PaymentForm = ({ totalAmount  }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Frontend validation against script-like input
+    if (containsScriptOrEvent(cardholderName) || containsScriptOrEvent(email)) {
+      const msg =
+        "Input contains disallowed scripts or event handlers. Remove them before submitting payment.";
+      toast.error(msg);
+      return;
+    }
 
     if (!stripe || !elements || !clientSecret) {
       toast.error("Stripe or ClientSecret is not available.");
