@@ -1,6 +1,15 @@
 import axios from 'axios';
+import { logger } from './logger';
 
 const API_BASE_URL = 'http://localhost:4000';
+
+export const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  logger.log(`Retrieving cookie "${name}":`, document.cookie);
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
 
 /**
  * Check if the user's token is valid
@@ -8,7 +17,9 @@ const API_BASE_URL = 'http://localhost:4000';
  */
 export const checkAuth = async () => {
   try {
-    const token = localStorage.getItem('token');
+    // Get token from cookies
+    const token = getCookie('access_token');
+    logger.log('Checking authentication with token:', token);
     
     if (!token) {
       return false;
@@ -22,15 +33,15 @@ export const checkAuth = async () => {
     
     if (response.status === 200 && response.data) {
       // Token is valid, user can proceed
-      console.log('User authenticated:', response.data.user);
+      logger.log('User authenticated:', response.data.user);
       return true;
     }
     
     return false;
   } catch (error) {
-    // Token is expired or invalid
-    console.error('Authentication check failed:', error);
-    localStorage.removeItem('token'); // Clear invalid token
+    logger.error('Authentication check failed:', error);
+    // Token is invalid or request failed
+    logout(); // Clear the invalid token
     return false;
   }
 };
@@ -39,7 +50,7 @@ export const checkAuth = async () => {
  * Logout user by clearing token
  */
 export const logout = () => {
-  localStorage.removeItem('token');
+  document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
 };
 
 /**
@@ -47,5 +58,5 @@ export const logout = () => {
  * @returns {string|null} - The token or null if not found
  */
 export const getToken = () => {
-  return localStorage.getItem('token');
+  return getCookie('access_token');
 };

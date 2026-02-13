@@ -18,10 +18,10 @@ export default function NewItem() {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('File selected:', file.name, file.type, file.size);
+      logger.log('File selected:', file.name, file.type, file.size);
       setImage(file);
     } else {
-      console.log('No file selected');
+      logger.log('No file selected');
       setImage(null);
     }
   };
@@ -52,10 +52,10 @@ export default function NewItem() {
       const formData = new FormData();
       
       // Debug logging
-      console.log('Image file:', image);
-      console.log('Image type:', image?.type);
-      console.log('Image name:', image?.name);
-      console.log('Image size:', image?.size);
+      logger.log('Image file:', image);
+      logger.log('Image type:', image?.type);
+      logger.log('Image name:', image?.name);
+      logger.log('Image size:', image?.size);
       
       // Add file if present
       if (image) {
@@ -69,19 +69,19 @@ export default function NewItem() {
       formData.append('prices', JSON.stringify(sizes));
       
       // Debug FormData contents
-      console.log('FormData contents:');
+      logger.log('FormData contents:');
       for (let pair of formData.entries()) {
-        console.log(pair[0] + ':', pair[1]);
+        logger.log(pair[0] + ':', pair[1]);
       }
       
       // Send to backend - backend handles Supabase upload
       const response = await axios.post("http://localhost:4000/dish", formData);
-      console.log('Success response:', response.data);
+      logger.log('Success response:', response.data);
       
       toast.success("New Product is added successfully! ");
       setTimeout(() => navigate("/itemMenuPage?category_id=" + categoryId), 2000);
     } catch (err) {
-      console.error('Dish creation error:', err.response?.data || err.message);
+      logger.error('Dish creation error:', err.response?.data || err.message);
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
