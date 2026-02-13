@@ -5,6 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Navbar from "../navbar";
 import Footer2 from "../footer2";
+import { logger } from "../../utils/logger";
 
 export default function NewMenu() {
   const [category_name, setName] = useState("");
@@ -16,10 +17,10 @@ export default function NewMenu() {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('File selected:', file.name, file.type, file.size);
+      logger.log('File selected:', file.name, file.type, file.size);
       setImage(file);
     } else {
-      console.log('No file selected');
+      logger.log('No file selected');
       setImage(null);
     }
   };
@@ -31,10 +32,10 @@ export default function NewMenu() {
       const formData = new FormData();
       
       // Debug logging
-      console.log('Image file:', image);
-      console.log('Image type:', image?.type);
-      console.log('Image name:', image?.name);
-      console.log('Image size:', image?.size);
+      logger.log('Image file:', image);
+      logger.log('Image type:', image?.type);
+      logger.log('Image name:', image?.name);
+      logger.log('Image size:', image?.size);
       
       // Add file if present
       if (image) {
@@ -46,29 +47,29 @@ export default function NewMenu() {
       formData.append('category_description', category_description);
       
       // Debug FormData contents
-      console.log('FormData contents:');
+      logger.log('FormData contents:');
       for (let pair of formData.entries()) {
-        console.log(pair[0] + ':', pair[1]);
+        logger.log(pair[0] + ':', pair[1]);
       }
       
       // Log the actual request details
-      console.log('Sending request to: http://localhost:4000/category');
-      console.log('Request method: POST');
-      console.log('Content-Type will be set by browser with boundary');
+      logger.log('Sending request to: http://localhost:4000/category');
+      logger.log('Request method: POST');
+      logger.log('Content-Type will be set by browser with boundary');
       
       // Send to backend - backend handles Supabase upload
       const response = await axios.post("http://localhost:4000/category", formData, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log('Upload progress:', percentCompleted + '%');
+          logger.log('Upload progress:', percentCompleted + '%');
         }
       });
-      console.log('Success response:', response.data);
+      logger.log('Success response:', response.data);
 
       toast.success("New Menu Category is added successfully!");
       setTimeout(() => navigate("/hotelMenuPage"), 2000);
     } catch (err) {
-      console.error('Category creation error:', err.response?.data || err.message);
+      logger.error('Category creation error:', err.response?.data || err.message);
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||

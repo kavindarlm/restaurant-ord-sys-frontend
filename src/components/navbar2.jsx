@@ -15,7 +15,7 @@ const Navbar2 = () => {
   const handleCartClick = () => {
     navigate("/shopping");
   };
-
+ 
   return (
     <nav className="fixed top-6 left-0 right-0 bg-amber-950 rounded-full mx-6 md:mx-6 flex items-center justify-between p-2">
       {/* Centered Logo */}

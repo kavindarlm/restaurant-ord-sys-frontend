@@ -1,16 +1,17 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import loginImg from "../assets/loginImg.png";
-import { FaGoogle, FaApple } from "react-icons/fa";
+import { useAdminAuth } from "../contexts/AdminAuthContext";
 
 function Login() {
   // State to store email and password inputs
   const [user_email, setEmail] = useState("");
   const [user_password, setPassword] = useState("");
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAdminAuth();
 
   const onLogin = async (e) => {
     e.preventDefault();
@@ -20,23 +21,32 @@ function Login() {
       return;
     }
 
-    const data = {
-      user_email,
-      user_password,
-    };
+    setIsLoading(true);
 
     try {
-      await axios.post('http://localhost:4000/user/login', data, { withCredentials: true });
-      toast.success('Login successful!');
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      const result = await login(user_email, user_password);
+      
+      if (result?.success) {
+        toast.success(result?.message || 'Login successful!');
+        
+        // Redirect to admin dashboard after successful login
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        throw new Error('Login failed. Please try again.');
+      }
     } catch (error) {
+      console.error('Login error:', error);
+      
       // Display specific error message from backend (including account lockout message)
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      const errorMessage = error?.message || 'Login failed. Please try again.';
       toast.error(errorMessage, {
         autoClose: 8000  // Extended time for lockout messages
       });
+    } finally {
+      // Always reset loading state
+      setIsLoading(false);
     }
   };
 
@@ -118,9 +128,10 @@ function Login() {
 
             <button
               type="submit"
-              className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
+              className="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
             >
-              Login
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
         </div>
